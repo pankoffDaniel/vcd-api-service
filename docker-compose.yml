@@ -1,0 +1,83 @@
+version: "3.8"
+
+services:
+  nginx:
+    image: nginx:1.22
+    restart: always
+    container_name: vcd_api_service_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf
+
+  postgres:
+    image: postgres:14.4
+    restart: always
+    container_name: vcd_api_service_postgres
+    env_file:
+      - .env
+    volumes:
+      - ./docker/database:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer:4.8.1
+    restart: always
+    container_name: vcd_api_service_adminer
+    depends_on:
+      - nginx
+      - postgres
+
+  app:
+    build: .
+    restart: always
+    container_name: vcd_api_service_app
+    entrypoint:
+      ./docker/wait-for-it.sh -t 0 postgres:5432 --
+      bash -c "alembic upgrade head &&
+      gunicorn app.main:app --worker-class uvicorn.workers.UvicornWorker --workers 8 --bind 0.0.0.0:80"
+    env_file:
+      - .env
+    depends_on:
+      - nginx
+      - postgres
+
+  rabbitmq:
+    image: rabbitmq:3.10.6
+    restart: always
+    container_name: vcd_api_service_rabbitmq
+
+  celery:
+    build: .
+    restart: always
+    container_name: vcd_api_service_celery
+    entrypoint:
+      ./docker/wait-for-it.sh -t 0 rabbitmq:5672 --
+      celery -A app.core.celery worker -n worker -l INFO
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+
+  celery-beat:
+    build: .
+    restart: always
+    container_name: vcd_api_service_celery_beat
+    entrypoint:
+      ./docker/wait-for-it.sh -t 0 rabbitmq:5672 --
+      celery -A app.core.celery beat -l INFO
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+
+  flower:
+    build: .
+    restart: always
+    container_name: vcd_api_service_flower
+    entrypoint:
+      celery -A app.core.celery flower --port=5556 --url_prefix=flower -l INFO
+    env_file:
+      - .env
+    depends_on:
+      - celery
+      - celery-beat

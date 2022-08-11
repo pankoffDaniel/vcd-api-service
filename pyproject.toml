@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "vcd-api-service"
+version = "0.1.0"
+description = "vCloud Director API"
+authors = ["Pankoff <fra1tube@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.79.0"
+uvicorn = "^0.18.2"
+alembic = "^1.8.1"
+SQLAlchemy = "^1.4.39"
+flower = "^1.1.0"
+celery = "^5.2.7"
+pyvcloud = "^23.0.4"
+toml = "^0.10.2"
+asyncpg = "^0.26.0"
+greenlet = "^1.1.2"
+gunicorn = "^20.1.0"
+Jinja2 = "^3.1.2"
+PyJWT = "^2.4.0"
+
+[tool.poetry.dev-dependencies]
+sqlalchemy2-stubs = "^0.0.2-alpha.24"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

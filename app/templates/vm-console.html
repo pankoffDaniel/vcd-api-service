@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>Console</title>
+</head>
+<body>
+<link href="/static/css/extended-keypad.css" rel="stylesheet"/>
+<link href="/static/css/main-ui.css" rel="stylesheet"/>
+<link href="/static/css/trackpad.css" rel="stylesheet"/>
+<link href="/static/css/wmks-all.css" rel="stylesheet"/>
+<script type="text/javascript" src="/static/js/jquery-3.4.1.min.js"></script>
+<script type="text/javascript" src="/static/js/jquery-ui.min.js"></script>
+<script type="text/javascript" src="/static/js/wmks.min.js"></script>
+<div id="wmksContainer" style="position:absolute;width:100%;height:100%"></div>
+<script>
+    const wmks = WMKS.createWMKS("wmksContainer", {})
+        .register(WMKS.CONST.Events.CONNECTION_STATE_CHANGE, function (event, data) {
+            if (data.state === WMKS.CONST.ConnectionState.CONNECTED) {
+                console.log("connection state change : connected")
+            }
+        });
+    wmks.connect('wss://{{ hostname }}:{{ port }}/{{ port }};{{ ticket }}')
+</script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Git
+.git
+.gitignore
+
+# Virtual environment
+.env*
+.venv/
+
+# PyCharm
+.idea/
+
+# Others
+.DS_Store
+vcd_sdk.log
+vcd_pysdk.log
+
+# Celery stuff
+celerybeat-schedule.db
+
+# Database
+docker/database/
+
+# Dev-config
+app/core/settings/config.dev.toml
