@@ -51,7 +51,7 @@ VCD_USERNAME=vcd_username
 VCD_PASSWORD=vcd_password
 ```
 
-Здесь следует уточнить, что *postgres* и *rabbitmq* - это названия контейнеров.
+Здесь следует уточнить, что *postgres* и *rabbitmq* - это названия Docker-сервисов.
 
 #### Запуск контейнеров
 
