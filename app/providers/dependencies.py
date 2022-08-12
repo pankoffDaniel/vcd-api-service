@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 from celery import Celery
 from fastapi import Depends, FastAPI
@@ -100,7 +100,7 @@ class DependenciesProvider:
         application.add_exception_handler(BaseRawException, handle_base_raw_exception)
         application.mount(
             path='/static',
-            app=StaticFiles(directory=os.path.join('app', 'static')),
+            app=StaticFiles(directory=Path('app', 'static')),
             name='static'
         )
         # роутеры, доступные по корневому пути "/"
