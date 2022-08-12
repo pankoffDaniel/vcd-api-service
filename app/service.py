@@ -46,6 +46,7 @@ from app.repositories import (
     SettingsRepository,
     TemplateCatalogRepository
 )
+from app.utils import get_vm_console_link
 
 logger = logging.getLogger(__name__)
 
@@ -345,10 +346,6 @@ class VCDService:
         vm = self._get_vm_by_id(vm_id)
         try:
             screen_data = vm.list_mks_ticket()
-            host = screen_data['Host']
-            port = screen_data['Port']
-            ticket = screen_data['Ticket']
-            return f'{self._app_config.hostname}/console?host={host}&port={port}&ticket={ticket}'
         except ConflictException as exception:
             logger.error(str(exception), {
                 'vm_id': vm_id,
@@ -357,6 +354,16 @@ class VCDService:
             raise VMPowerStateException(
                 content=str(exception),
                 status_code=status.HTTP_409_CONFLICT
+            )
+        else:
+            host = str(screen_data['Host'])
+            port = str(screen_data['Port'])
+            ticket = str(screen_data['Ticket'])
+            return get_vm_console_link(
+                hostname=self._app_config.hostname,
+                host=host,
+                port=port,
+                ticket=ticket
             )
 
     def vm_create_snapshot(self, *, vm_id: str) -> None:
@@ -387,19 +394,22 @@ class VCDService:
             disk_number: int | None
     ) -> None:
         """Устанавливает значение vHDD ВМ в МБ."""
+        virtual_quantity_key = '{' + NSMAP['rasd'] + '}VirtualQuantity'
+        description_key = '{' + NSMAP['rasd'] + '}Description'
+        element_name_key = '{' + NSMAP['rasd'] + '}ElementName'
+        host_resource_key = '{' + NSMAP['rasd'] + '}HostResource'
+        capacity_key = '{' + NSMAP['vcloud'] + '}capacity'
         vm = self._get_vm_by_id(vm_id)
         uri = vm.href + '/virtualHardwareSection/disks'
         disk_list = self._client.get_resource(uri)
         if disk_number is None:
             disk_number = 1
         for disk in disk_list.Item:
-            condition1 = disk['{' + NSMAP['rasd'] + '}Description'] == 'Hard disk'
-            condition2 = disk['{' + NSMAP['rasd'] + '}ElementName'] == f'Hard disk {disk_number}'
+            condition1 = disk[description_key] == 'Hard disk'
+            condition2 = disk[element_name_key] == f'Hard disk {disk_number}'
             if condition1 and condition2:
-                disk['{' + NSMAP['rasd'] + '}VirtualQuantity'] = hdd
-                disk['{' + NSMAP['rasd'] + '}HostResource'].set(
-                    '{' + NSMAP['vcloud'] + '}capacity', str(hdd)
-                )
+                disk[virtual_quantity_key] = hdd
+                disk[host_resource_key].set(capacity_key, str(hdd))
                 try:
                     self._client.put_resource(
                         uri, disk_list, EntityType.RASD_ITEMS_LIST.value
